@@ -13,6 +13,18 @@ class Render:
         self.state = state
         self.setup_window()
 
+
+    def drawText(self, position, textString):
+        font = pygame.font.Font (None, 64)
+        textSurface = font.render(textString, True, (255,255,255,255))
+        textData = pygame.image.tostring(textSurface, "RGBA", True)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
+        glPushMatrix()
+        glRasterPos3d(*position)
+        glDrawPixels(textSurface.get_width(), textSurface.get_height(), GL_RGBA, GL_UNSIGNED_BYTE, textData)
+        glPopMatrix()
+
     def renderGrid(self, grid_size=32):
         glColor3f(1, 1,  1)
         glLineWidth(1)
@@ -129,14 +141,17 @@ class Render:
         self.renderTouch()
         return
 
-    def render_2D(self):
+    def setup_2D(self):
         glViewport(0, 0, self.state.width, self.state.height)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         glOrtho(0, self.state.width, self.state.height, 0, -99999, 99999)
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-        return
+
+    def render_2D(self):
+        self.setup_2D()
+        #self.drawText((320, 200, 0), "TEST")
 
     def frame(self):
         self.render_3D()

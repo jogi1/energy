@@ -17,48 +17,11 @@ from Control import Control
 from Camera import Camera
 from Config import Config
 from Render import Render
+from World import World
 from pygame.locals import *
 
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
-
-# generic math functions
-def AngleVectors(angles):
-    PITCH = 0
-    YAW = 1
-    ROLL = 2
-    if angles[YAW]:
-        angle = math.radians(angles[YAW])
-        sy = math.sin(angle)
-        cy = math.cos(angle)
-    else:
-        sy = 0
-        cy = 1
-
-    if angles[PITCH]:
-        angle = math.radians(angles[PITCH])
-        sp = math.sin(angle)
-        cp = math.cos(angle)
-    else:
-        sp = 0
-        cp = 1
-
-    forward = [cp * cy, cp * sy, -sp]
-
-    if angles[ROLL]:
-        angle = math.radians(angles[ROLL])
-        sr = math.sin(angle)
-        cr = math.cos(angle)
-
-        t = sr * sp;
-        right = [-1 * t * cy + cr * sy, -1 * t * sy - cr * cy, -1 * sr * cp]
-        t = cr * sp
-        up = [ t * cy + sr * sy, t * sy - sr * cy, cr * cp ]
-    else:
-        right = [ sy, -cy , 0]
-        up = [ sp * cy, sp * sy, cp ]
-    return [forward, right, up]
-
 
 def TextureLoad(name, path=['resources'], extension=".svg",  width=32, height=32):
     filename = os.path.join(os.path.join(*path), name) + extension
@@ -73,24 +36,6 @@ def TextureLoad(name, path=['resources'], extension=".svg",  width=32, height=32
     ctx.scale(scale_width, scale_height)
     svg.render_cairo(ctx)
     return pygame.image.frombuffer(data.tostring(), (width, height), "ARGB")
-
- 
-def drawText(position, textString):
-    font = pygame.font.Font (None, 64)
-    textSurface = font.render(textString, True, (255,255,255,255), (0,0,0,255))
-    textData = pygame.image.tostring(textSurface, "RGBA", True)
-    glRasterPos3d(*position)
-    glDrawPixels(textSurface.get_width(), textSurface.get_height(), GL_RGBA, GL_UNSIGNED_BYTE, textData)
-
-def limit(var, min, max):
-    print var
-    if var < min:
-        return min
-    if var > max:
-        return max
-    return var
-
-
 
 class PyManMain:
     """The Main PyMan Class - This class handles the main 
@@ -112,6 +57,7 @@ class PyManMain:
         self.mouse = Mouse(self)
         self.camera = Camera(self)
         self.render = Render(self)
+        self.world = World()
         self.fps_clock = pygame.time.Clock()
         self.font = pygame.font.Font('freesansbold.ttf', 32)
         self.cursor = TextureLoad('cursor')
