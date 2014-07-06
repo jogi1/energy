@@ -12,6 +12,13 @@ class Render:
     def __init__(self, state):
         self.state = state
         self.setup_window()
+        self.disable2D = False;
+        self.disable3D = False;
+        self.functions2D = []
+
+
+    def register2dFunction(self, function):
+        self.functions2D.append(function)
 
 
     def drawText(self, position, textString):
@@ -151,9 +158,15 @@ class Render:
 
     def render_2D(self):
         self.setup_2D()
+        for x in self.functions2D:
+            x(self.state)
         #self.drawText((320, 200, 0), "TEST")
 
     def frame(self):
-        self.render_3D()
-        self.render_2D()
+        glClearColor(0.0, 0.0, 0.0, 1.0)
+        glClear(GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT)
+        if (not self.disable3D):
+            self.render_3D()
+        if (not self.disable2D):
+            self.render_2D()
 

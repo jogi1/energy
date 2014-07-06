@@ -8,9 +8,9 @@ from OpenGL.GLU import *
 import array
 import math
 import random
+import time
 
-import cairo
-import rsvg
+#import cairo
 from Vector import Vector
 from Mouse import Mouse
 from Control import Control
@@ -18,6 +18,10 @@ from Camera import Camera
 from Config import Config
 from Render import Render
 from World import World
+from Movement import Movement
+from Physics import Physics
+from Attractor import Attractor
+from Particle import Particle
 from pygame.locals import *
 
 if not pygame.font: print 'Warning, fonts disabled'
@@ -37,10 +41,60 @@ def TextureLoad(name, path=['resources'], extension=".svg",  width=32, height=32
     svg.render_cairo(ctx)
     return pygame.image.frombuffer(data.tostring(), (width, height), "ARGB")
 
+def myInit(self):
+    self.mouseAttractor = Attractor(self)
+    self.physics.registerAttractor(self.mouseAttractor)
+    for x in xrange(5000):
+        p = Particle(Vector(random.randint(0, self.width), random.randint(0, self.height), 0), Vector())
+        self.physics.registerParticle(p)
+
+def myControlFunc(state):
+    state.mouseAttractor.position.x = state.mouse.screen_position.x
+    state.mouseAttractor.position.y = state.mouse.screen_position.y
+    if state.controls.mousebuttons[1]:
+        state.mouseAttractor.attraction = state.pointerPull
+    else:
+        state.mouseAttractor.attraction = 0
+
+
+def my2Dfunc(state):
+    glBegin(GL_POINTS)
+    glColor3f(1, 0, 0)
+    glVertex3f(state.movement.position.x, state.movement.position.y, 0);
+    glColor3f(1, 1, 1)
+    glVertex3f(state.mouse.screen_position.x, state.mouse.screen_position.y, 0);
+    for part in state.physics.particles:
+        glColor3f((part.momentum.x +1)/10, (part.momentum.y +1)/10, 1)
+        glVertex3f(part.position.x, part.position.y, 0)
+
+    glColor3f(0, 1, 0)
+    for part in state.physics.attractors:
+        glVertex3f(part.position.x, part.position.y, 0)
+    glEnd();
+    glColor3f(1, 1, 1)
+    state.render.drawText((0, 64, 0), str(state.lastFrameTime))
+    state.render.drawText((0, 128, 0), str(state.movement.position))
+
 class PyManMain:
+
+    def spawnParticle(self):
+        position = self.movement.position.clone()
+        momentum = self.mouseAttractor.position - self.movement.position
+        momentum = momentum.scale(0.1)
+        a = Particle(position, momentum)
+        self.physics.registerParticle(a)
+
+    def spawnAttractor(self):
+        a = Attractor(self)
+        a.position = self.movement.position.clone()
+        a.momentum = self.mouseAttractor.position - self.movement.position
+        a.momentum = a.momentum.scale(0.1)
+        self.physics.registerAttractor(a)
+
     """The Main PyMan Class - This class handles the main 
     initialization and creating of the Game."""
-    def __init__(self, width=640,height=480):
+
+    def __init__(self, width=1280 ,height=1024):
         """Initialize"""
         """Initialize PyGame"""
         pygame.init()
@@ -57,17 +111,30 @@ class PyManMain:
         self.mouse = Mouse(self)
         self.camera = Camera(self)
         self.render = Render(self)
+        self.movement = Movement(self)
         self.world = World()
+        self.physics = Physics(self)
         self.fps_clock = pygame.time.Clock()
         self.font = pygame.font.Font('freesansbold.ttf', 32)
-        self.cursor = TextureLoad('cursor')
+        #self.cursor = TextureLoad('cursor')
         pygame.mouse.set_visible(False)
         pygame.event.set_grab(True)
+        self.currentTime = time.time()
+
+        myInit(self)
+
+        self.render.register2dFunction(my2Dfunc)
+        self.render.disable3D = True
+        self.lastFrameTime = 0
+        self.pointerPull = 300
 
         def MainLoop(self):
             """This is the Main Loop of the Game"""
         while 1:
+            self.currentTime = time.time()
             self.controls.pre_event()
+            myControlFunc(self)
+            self.physics.frame()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
@@ -84,10 +151,8 @@ class PyManMain:
 
             self.render.frame()
 
-            print self.camera.position
-            print self.camera.orientation
-
             self.fps_clock.tick(60)
+            self.lastFrameTime = time.time() - self.currentTime
 
 
 if __name__ == "__main__":

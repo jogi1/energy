@@ -9,7 +9,7 @@ class DirectionVector:
         return "Direction Vector forward(%s) right(%s) up(%s)" % (self.forward, self.right, self.up)
 
 class Vector:
-    def __init__(self, x, y, z):
+    def __init__(self, x=0, y=0, z=0):
         self.x = x
         self.y = y
         self.z = z
@@ -26,6 +26,9 @@ class Vector:
     def dot(self, other):
         return Vector(self.x * other.x, self.y * other.y, self.z * other.z)
 
+    def length(self):
+        return math.sqrt(math.pow(self.x, 2) + math.pow(self.y, 2) + math.pow(self.z, 2))
+
     def scale(self, scale, return_new = False):
         if return_new:
             return Vector(self.x * scale, self.y * scale, self.z * scale)
@@ -36,6 +39,9 @@ class Vector:
 
     def getTuplet(self):
         return [self.x, self.y, self.z]
+
+    def clone(self):
+        return Vector(self.x, self.y, self.z)
 
 
     def getDirectionVectors(self):
