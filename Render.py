@@ -22,7 +22,7 @@ class Render:
 
 
     def drawText(self, position, textString):
-        font = pygame.font.Font (None, 64)
+        font = pygame.font.Font (None, 16)
         textSurface = font.render(textString, True, (255,255,255,255))
         textData = pygame.image.tostring(textSurface, "RGBA", True)
         glEnable(GL_BLEND)

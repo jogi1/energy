@@ -8,6 +8,7 @@ class Control:
         self.pressed = []
         self.pressed_last_frame = []
         self.mousebuttons = [False, False, False, False ,False, False]
+        self.attractorTime = 0
 
     def pre_event(self):
         return
@@ -57,8 +58,17 @@ class Control:
         if self.pressed[K_SPACE]:
             self.state.spawnParticle()
 
+        if self.pressed[K_k]:
+            self.state.respawnParticles()
+
+
         if self.mousebuttons[3]:
-            self.state.spawnAttractor()
+            if self.attractorTime == 0:
+                self.attractorTime = self.state.currentTime
+        elif not self.mousebuttons[3]:
+            if self.attractorTime:
+                self.state.spawnAttractor((self.state.currentTime - self.attractorTime)*2)
+                self.attractorTime = 0
 
         if self.state.block_cursor:
             self.state.camera.rotate_pitch(relative[1])

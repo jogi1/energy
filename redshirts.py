@@ -17,7 +17,7 @@ from Control import Control
 from Camera import Camera
 from Config import Config
 from Render import Render
-from World import World
+#from World import World
 from Movement import Movement
 from Physics import Physics
 from Attractor import Attractor
@@ -44,6 +44,8 @@ def TextureLoad(name, path=['resources'], extension=".svg",  width=32, height=32
 def myInit(self):
     self.mouseAttractor = Attractor(self)
     self.physics.registerAttractor(self.mouseAttractor)
+    self.particleSpawnTime = time.time()
+    self.attractorSpawnTime = time.time()
     for x in xrange(5000):
         p = Particle(Vector(random.randint(0, self.width), random.randint(0, self.height), 0), Vector())
         self.physics.registerParticle(p)
@@ -58,34 +60,55 @@ def myControlFunc(state):
 
 
 def my2Dfunc(state):
+    glPointSize(3)
     glBegin(GL_POINTS)
     glColor3f(1, 0, 0)
+    # position
     glVertex3f(state.movement.position.x, state.movement.position.y, 0);
     glColor3f(1, 1, 1)
+    # pointer
     glVertex3f(state.mouse.screen_position.x, state.mouse.screen_position.y, 0);
-    for part in state.physics.particles:
-        glColor3f((part.momentum.x +1)/10, (part.momentum.y +1)/10, 1)
-        glVertex3f(part.position.x, part.position.y, 0)
-
+    # attractors
     glColor3f(0, 1, 0)
     for part in state.physics.attractors:
         glVertex3f(part.position.x, part.position.y, 0)
     glEnd();
+    glPointSize(1)
+    glBegin(GL_POINTS)
+    # particles
+    for part in state.physics.particles:
+        glColor3f((part.momentum.x +1)/10, (part.momentum.y +1)/10, 1)
+        glVertex3f(part.position.x, part.position.y, 0)
+
+    glEnd();
     glColor3f(1, 1, 1)
-    state.render.drawText((0, 64, 0), str(state.lastFrameTime))
-    state.render.drawText((0, 128, 0), str(state.movement.position))
+    state.render.drawText((0, 16, 0), str(state.lastFrameTime))
+    state.render.drawText((0, 32, 0), str(state.movement.position))
+    state.render.drawText((0, 64, 0), str(state.controls.attractorTime if state.controls.attractorTime == 0 else (state.currentTime - state.controls.attractorTime) *2 ))
 
 class PyManMain:
 
+    def respawnParticles(self):
+        for x in xrange(5000):
+            p = Particle(Vector(random.randint(0, self.width), random.randint(0, self.height), 0), Vector())
+            self.physics.registerParticle(p)
+
     def spawnParticle(self):
+        if time.time() - self.particleSpawnTime < 0.01:
+            return
+        self.particleSpawnTime = time.time()
         position = self.movement.position.clone()
         momentum = self.mouseAttractor.position - self.movement.position
         momentum = momentum.scale(0.1)
         a = Particle(position, momentum)
         self.physics.registerParticle(a)
 
-    def spawnAttractor(self):
+    def spawnAttractor(self, lifeTime = 3):
+        if time.time() - self.attractorSpawnTime < 0.5:
+            return
+        self.attractorSpawnTime = time.time()
         a = Attractor(self)
+        a.lifeTime = lifeTime
         a.position = self.movement.position.clone()
         a.momentum = self.mouseAttractor.position - self.movement.position
         a.momentum = a.momentum.scale(0.1)
@@ -112,7 +135,7 @@ class PyManMain:
         self.camera = Camera(self)
         self.render = Render(self)
         self.movement = Movement(self)
-        self.world = World()
+        #self.world = World()
         self.physics = Physics(self)
         self.fps_clock = pygame.time.Clock()
         self.font = pygame.font.Font('freesansbold.ttf', 32)

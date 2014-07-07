@@ -1,3 +1,4 @@
+"""
 import pygame
 import math
 import sys
@@ -34,3 +35,4 @@ class World:
         print "finixed in %f" % (time.clock() - start)
 
 
+"""

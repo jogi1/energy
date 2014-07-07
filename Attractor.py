@@ -13,4 +13,13 @@ class Attractor(Particle):
         self.attraction = 300
         self.ignoreGravity = True
 
+    def handle(self):
+        att = []
+        for attractor in self.state.physics.attractors:
+            if attractor.lifeTime:
+                if self.state.currentTime - attractor.spawnTime > attractor.lifeTime:
+                    continue
+            att.append(attractor)
+        self.state.physics.attractors = att
+
 

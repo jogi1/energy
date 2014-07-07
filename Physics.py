@@ -26,20 +26,22 @@ class Physics:
             self.attractors.append(attractor)
 
     def frame(self):
+        if len(self.attractors):
+            self.attractors[0].handle()
         for attractor in self.attractors:
             self.PhysicsGravity(attractor)
             for attracted in self.attractors:
-                if attracted == attracted:
+                if attracted == attractor:
                     continue
-                self.PhysicsAttraction(self.state, attractor, attracted)
+                self.PhysicsAttraction(attractor, attracted)
             for particle in self.particles:
-                self.PhysicsGravity(particle)
                 self.PhysicsAttraction(attractor, particle)
 
         for attractor in self.attractors:
             self.PhysicsApplyMomentum(attractor)
             self.PhyicsScreenCollision(attractor)
         for particle in self.particles:
+            self.PhysicsGravity(particle)
             self.PhysicsApplyMomentum(particle)
             self.PhyicsScreenCollision(particle)
 
