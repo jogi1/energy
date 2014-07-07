@@ -84,7 +84,8 @@ def my2Dfunc(state):
     glColor3f(1, 1, 1)
     state.render.drawText((0, 16, 0), str(state.lastFrameTime))
     state.render.drawText((0, 32, 0), str(state.movement.position))
-    state.render.drawText((0, 64, 0), str(state.controls.attractorTime if state.controls.attractorTime == 0 else (state.currentTime - state.controls.attractorTime) *2 ))
+    state.render.drawText((0, 48, 0), str(state.controls.attractorTime if state.controls.attractorTime == 0 else (state.currentTime - state.controls.attractorTime) *2 ))
+    state.render.drawText((0, 64, 0), str(state.gametimeScale))
 
 class PyManMain:
 
@@ -125,6 +126,7 @@ class PyManMain:
         self.config = Config.config
         self.fps = 60.0
         self.frametime = 1000.0/self.fps
+        self.gametimeScale = 20
         """Set the window Size"""
         self.width = width
         self.height = height

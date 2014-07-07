@@ -3,7 +3,9 @@ from Helper import limit
 
 class Movement:
     def __init__(self, state):
+        self.ignoreGravity = False
         self.position = Vector()
+        self.momentum = Vector()
         self.state = state
         self.speed = 100
 
@@ -11,19 +13,15 @@ class Movement:
         self.position.x = limit(self.position.x, 0, self.state.width)
         self.position.y = limit(self.position.y, 0, self.state.height)
 
-    def up(self):
-        self.position.y = self.position.y - self.speed * self.state.lastFrameTime
-        self.collideScreen()
-
     def down(self):
-        self.position.y = self.position.y + self.speed * self.state.lastFrameTime
-        self.collideScreen()
+        return
+
+    def up(self):
+        self.momentum.y = self.momentum.y - self.speed * self.state.lastFrameTime
 
     def left(self):
-        self.position.x = self.position.x - self.speed * self.state.lastFrameTime
-        self.collideScreen()
+        self.momentum.x = self.momentum.x - self.speed * self.state.lastFrameTime
 
     def right(self):
-        self.position.x = self.position.x + self.speed * self.state.lastFrameTime
-        self.collideScreen()
+        self.momentum.x = self.momentum.x + self.speed * self.state.lastFrameTime
 

@@ -4,6 +4,9 @@ t clears all attractors
 y clears all particles
 k to spawn 5k random particles
 space spawns particles
+c spawns an infinte lifetime attractor
+
+g slows down game time h increses it
 
 there is a attractor attached to the cursor (the big white thingy) and it will activate when pressing lmb use q/e to decrease/increase its attraction (this one gets delete on t)
 

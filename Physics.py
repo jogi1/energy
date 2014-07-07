@@ -1,4 +1,5 @@
 import math
+from Helper import limit
 
 class Physics:
     def __init__(self, state):
@@ -25,7 +26,20 @@ class Physics:
         else:
             self.attractors.append(attractor)
 
+    def collideScreen(self, position):
+        position.x = limit(position.x, 0, self.state.width)
+        position.y = limit(position.y, 0, self.state.height)
+
+    def handleMovement(self):
+        self.state.movement.momentum.x = limit(self.state.movement.momentum.x, -10, 10)
+        self.state.movement.momentum.y = limit(self.state.movement.momentum.y, -10, 10)
+        self.PhysicsGravity(self.state.movement)
+        self.state.movement.position = self.state.movement.position + self.state.movement.momentum.scale(self.state.gametimeScale * self.state.lastFrameTime, True)
+        self.collideScreen(self.state.movement.position)
+
+
     def frame(self):
+        self.handleMovement()
         if len(self.attractors):
             self.attractors[0].handle()
         for attractor in self.attractors:
@@ -40,6 +54,7 @@ class Physics:
         for attractor in self.attractors:
             self.PhysicsApplyMomentum(attractor)
             self.PhyicsScreenCollision(attractor)
+
         for particle in self.particles:
             self.PhysicsGravity(particle)
             self.PhysicsApplyMomentum(particle)
@@ -60,7 +75,7 @@ class Physics:
         particle.momentum.y = particle.momentum.y + self.gravity
 
     def PhysicsApplyMomentum(self, particle):
-        particle.position = particle.position + particle.momentum.scale(10 * self.state.lastFrameTime, True)
+        particle.position = particle.position + particle.momentum.scale(self.state.gametimeScale * self.state.lastFrameTime, True)
 
     def PhyicsScreenCollision(self, particle):
         state = self.state

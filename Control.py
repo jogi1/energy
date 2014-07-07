@@ -55,12 +55,20 @@ class Control:
         if self.pressed[K_y]:
             self.state.physics.clearParticles()
 
+        if self.pressed[K_g]:
+            self.state.gametimeScale = self.state.gametimeScale - 0.05
+            if self.state.gametimeScale <= 0:
+                self.state.gametimeScale = 0.05
+        if self.pressed[K_h]:
+            self.state.gametimeScale = self.state.gametimeScale + 0.05
         if self.pressed[K_SPACE]:
             self.state.spawnParticle()
 
         if self.pressed[K_k]:
             self.state.respawnParticles()
 
+        if self.pressed[K_c]:
+            self.state.spawnAttractor(0)
 
         if self.mousebuttons[3]:
             if self.attractorTime == 0:
