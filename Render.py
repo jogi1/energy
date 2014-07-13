@@ -21,6 +21,15 @@ class Render:
         self.functions2D.append(function)
 
 
+    def drawTextblock(self, position, block):
+        position = list(position)
+        text = block.split('\n')
+        i = 0
+        for x in text:
+            self.drawText(tuple(position), x)
+            position[1] = position[1] + 16
+
+
     def drawText(self, position, textString):
         font = pygame.font.Font (None, 16)
         textSurface = font.render(textString, True, (255,255,255,255))

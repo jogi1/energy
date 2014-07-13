@@ -5,7 +5,8 @@ class Physics:
     def __init__(self, state):
         self.attractors = []
         self.particles = []
-        self.gravity = 0.098
+        self.timebubbles = []
+        self.gravity = 0.2
         self.state = state
 
     def clearParticles(self):
@@ -13,6 +14,9 @@ class Physics:
 
     def clearAttractors(self):
         self.attractors = []
+
+    def clearTimebubbles(self):
+        self.timebubbles = []
 
     def registerParticle(self, particle):
         if isinstance(particle, list):
@@ -25,6 +29,13 @@ class Physics:
             self.attractors = self.attractors + attractor
         else:
             self.attractors.append(attractor)
+
+    def registerTimebubble(self, timebubble):
+        if isinstance(timebubble, list):
+            self.timebubbles = self.timebubbles + timebubble
+        else:
+            self.timebubbles.append(timebubble)
+        print len(self.timebubbles)
 
     def collideScreen(self, position):
         position.x = limit(position.x, 0, self.state.width)
@@ -43,7 +54,6 @@ class Physics:
         if len(self.attractors):
             self.attractors[0].handle()
         for attractor in self.attractors:
-            self.PhysicsGravity(attractor)
             for attracted in self.attractors:
                 if attracted == attractor:
                     continue
@@ -51,11 +61,20 @@ class Physics:
             for particle in self.particles:
                 self.PhysicsAttraction(attractor, particle)
 
+            for particle in self.timebubbles:
+                self.PhysicsAttraction(attractor, particle)
+
         for attractor in self.attractors:
+            self.PhysicsGravity(attractor)
             self.PhysicsApplyMomentum(attractor)
             self.PhyicsScreenCollision(attractor)
 
         for particle in self.particles:
+            self.PhysicsGravity(particle)
+            self.PhysicsApplyMomentum(particle)
+            self.PhyicsScreenCollision(particle)
+
+        for particle in self.timebubbles:
             self.PhysicsGravity(particle)
             self.PhysicsApplyMomentum(particle)
             self.PhyicsScreenCollision(particle)
@@ -70,12 +89,20 @@ class Physics:
 
     def PhysicsGravity(self, particle):
         # apply gravity
-        if particle.ignoreGravity:
-            return
-        particle.momentum.y = particle.momentum.y + self.gravity
+        if not particle.ignoreGravity:
+            particle.momentum.y = particle.momentum.y + self.gravity
+        # apply drag
+        if not particle.ignoreDrag:
+            particle.momentum = particle.momentum.scale(.99, True)
 
     def PhysicsApplyMomentum(self, particle):
-        particle.position = particle.position + particle.momentum.scale(self.state.gametimeScale * self.state.lastFrameTime, True)
+        # apply time effects
+        timescale = self.state.gametimeScale
+        for timebubble in self.state.physics.timebubbles:
+            d = particle.position - timebubble.position
+            if d.length() <= timebubble.timeRadius:
+                timescale = timescale * timebubble.timeScale
+        particle.position = particle.position + particle.momentum.scale(timescale * self.state.lastFrameTime, True)
 
     def PhyicsScreenCollision(self, particle):
         state = self.state

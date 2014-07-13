@@ -5,6 +5,8 @@ y clears all particles
 k to spawn 5k random particles
 space spawns particles
 c spawns an infinte lifetime attractor
+f spawns an timebubble
+v clears all timebubbles
 
 g slows down game time h increses it
 

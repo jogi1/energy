@@ -4,6 +4,7 @@ from Helper import limit
 class Movement:
     def __init__(self, state):
         self.ignoreGravity = False
+        self.ignoreDrag = False
         self.position = Vector()
         self.momentum = Vector()
         self.state = state
