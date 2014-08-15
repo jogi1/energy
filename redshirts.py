@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 import os, sys
 import pygame
 from OpenGL.GL import *
@@ -17,7 +18,7 @@ from Control import Control
 from Camera import Camera
 from Config import Config
 from Render import Render
-#from World import World
+from World import World
 from Movement import Movement
 from Physics import Physics
 from Attractor import Attractor
@@ -25,6 +26,7 @@ from Timebubble import Timebubble
 from Particle import Particle
 from Spawner import Spawner
 from Weapon import *
+from Ray import *
 
 from pygame.locals import *
 
@@ -33,7 +35,7 @@ if not pygame.mixer: print 'Warning, sound disabled'
 
 def renderCircle(middle, radius, segments = 60):
     glBegin(GL_LINE_LOOP)
-    for i in xrange(0, segments):
+    for i in xrange(1, segments):
         theta = (2.0 * math.pi * i) / segments
         x = radius * math.cos(theta)
         y = radius * math.sin(theta)
@@ -57,18 +59,19 @@ def TextureLoad(name, path=['resources'], extension=".svg",  width=32, height=32
 def myInit(self):
     self.mouseAttractor = Attractor(self, Vector(), Vector())
     self.physics.registerAttractor(self.mouseAttractor)
-    self.particleSpawnTime = time.time()
-    self.attractorSpawnTime = time.time()
-    self.timebubbleSpawnTime = time.time()
-    for x in xrange(5000):
-        p = Particle(self, Vector(random.randint(0, self.width), random.randint(0, self.height), 0), Vector())
+    self.mouseRay = Ray(self, self.movement.position, self.mouse.screen_position)
 
 def myControlFunc(state):
     state.mouseAttractor.position.x = state.mouse.screen_position.x
     state.mouseAttractor.position.y = state.mouse.screen_position.y
+    mv = Vector(state.mouse.screen_position.x, state.mouse.screen_position.y, 0)
+    state.mouseRay.momentum = mv - state.movement.position
+    state.mouseRay.position = state.movement.position
     return
 
 def my2Dfunc(state):
+    state.world.draw(state)
+    state.mouseRay.draw()
     glPointSize(3)
     glBegin(GL_POINTS)
     glColor3f(1, 0, 0)
@@ -110,6 +113,8 @@ def my2Dfunc(state):
         state.render.drawTextblock((0, 16, 0), "F1 to toggle help\n1 to select particle gun\n2 to select attractor gun\n3 to select timebubble gun\nlmb -> shoot at cursor\nrmb -> spawn at cursor\nspace -> spawn at position")
     else:
         state.render.drawText((0, 16, 0), str(state.lastFrameTime))
+        state.render.drawText((128, 16, 0), str(state.movement.position))
+        state.render.drawText((256, 16, 0), str(state.mouse.screen_position))
         i = 0
         state.render.drawText((0, 32, 0), str(state.controls.selectWeapon['name']))
         for x in state.controls.selectWeapon['options']:
@@ -181,7 +186,7 @@ class PyManMain:
         self.camera = Camera(self)
         self.render = Render(self)
         self.movement = Movement(self)
-        #self.world = World()
+        self.world = World(self)#, (width, height, 3))
         self.physics = Physics(self)
         self.fps_clock = pygame.time.Clock()
         self.font = pygame.font.Font('freesansbold.ttf', 32)
@@ -192,6 +197,7 @@ class PyManMain:
 
         myInit(self)
 
+        self.render.register2dFunction(self.world.draw)
         self.render.register2dFunction(my2Dfunc)
         self.render.disable3D = True
         self.lastFrameTime = 0

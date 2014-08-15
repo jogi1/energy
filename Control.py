@@ -3,11 +3,14 @@ from pygame.locals import *
 from Timebubble import *
 from Attractor import *
 from Weapon import *
+from Commands import *
 
 import pygame
 
+
 class Control:
     def __init__(self, state):
+        self.commands = Commands(state)
         self.options = ['ignoreGravity', 'ignoreDrag', 'unattractable']
         self.particleWeapons = {
                 'name': 'Particle',
@@ -37,6 +40,8 @@ class Control:
         self.mousebuttons = [False, False, False, False ,False, False]
         self.attractorTime = 0
 
+        self.commands.register('toggleHelp', K_F1, {'start': self.toggleHelp})
+
     def pre_event(self):
         return
         self.mousebuttons = [False, False, False, False ,False, False]
@@ -60,6 +65,8 @@ class Control:
         self.pressed_last_frame = self.pressed
         self.pressed = self.state.pygame.key.get_pressed()
         relative = self.state.pygame.mouse.get_rel()
+
+        self.commands.handle()
 
         if self.pressed[K_LCTRL]:
             self.state.block_cursor = True
@@ -109,9 +116,6 @@ class Control:
         else:
             self.state.mouse.frame(relative)
 
-        if self.pressed[K_F1]:
-            self.state.showHelp = not self.state.showHelp
-
         if self.mousebuttons[1]:
             self.spawnSelectedAimed()
 
@@ -153,4 +157,7 @@ class Control:
 
     def toggleOption(self, option):
         self.selectWeapon['options'][option] = not self.selectWeapon['options'][option]
+
+    def toggleHelp(self):
+        self.state.showHelp = not self.state.showHelp
 

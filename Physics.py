@@ -93,7 +93,7 @@ class Physics:
             particle.momentum.y = particle.momentum.y + self.gravity
         # apply drag
         if not particle.ignoreDrag:
-            particle.momentum = particle.momentum.scale(.99, True)
+            particle.momentum = particle.momentum.scale(.99)
 
     def PhysicsApplyMomentum(self, particle):
         # apply time effects
@@ -102,7 +102,7 @@ class Physics:
             d = particle.position - timebubble.position
             if d.length() <= timebubble.timeRadius:
                 timescale = timescale * timebubble.timeScale
-        particle.position = particle.position + particle.momentum.scale(timescale * self.state.lastFrameTime, True)
+        particle.position = particle.position + particle.momentum.scale(timescale * 1/self.state.fps, True) #self.state.lastFrameTime, True)
 
     def PhyicsScreenCollision(self, particle):
         state = self.state

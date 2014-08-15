@@ -43,6 +43,16 @@ class Vector:
     def clone(self):
         return Vector(self.x, self.y, self.z)
 
+    def normalize(self):
+        length = self.length()
+        if length == 0:
+            self.x = self.y = self.z = 0
+            return self
+        self.x /= length
+        self.y /= length
+        self.z /= length
+        return self
+
 
     def getDirectionVectors(self):
         PITCH = 0

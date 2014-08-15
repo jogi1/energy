@@ -1,4 +1,3 @@
-"""
 import pygame
 import math
 import sys
@@ -12,27 +11,98 @@ from pygame.locals import *
 
 from plane import isect_line_plane_v3
 
-from Noise import Noise
 from Vector import Vector
 
+from noise import pnoise2, snoise2
+
+from PIL import Image
+
 class World:
-    def __init__(self, size=(12, 12, 12)):
+    def __init__(self, state, size=(128, 128), octaves=1):
         start = time.clock()
+        self.freq = 16.0 * octaves
         self.size = size
-        self.volume = np.zeros(size)
-        self.Noise = Noise()
-        for x in range(1, size[0]-1):
-            start_x = time.clock()
-            for y in range(1, size[1]-1):
-                for z in range(1, size[2]-1):
-                    xf = float(float(x)/float(size[0]))
-                    yf = float(y)/float(size[1])
-                    zf = float(z)/float(size[2])
-                    value = self.Noise.simplex(1, Vector(xf*3, yf*3, zf*3))
-                    #print "(%f) (%f) (%f) - %f)" % (xf, yf, zf, value)
-                    self.volume[x][y][z] = value
-            print "x finished in %f" % (time.clock() - start_x)
-        print "finixed in %f" % (time.clock() - start)
+        self.octaves = octaves
+        self.state = state
+        self.tiles = np.zeros((state.width, state.height, 3))
+        self.texture = None
+        self.createWorldTexture()
+
+        return
+        for x in range(size[0]):
+            for y in range(size[1]):
+                self.volume[x][y] = int(snoise2(x / self.freq, y / self.freq, self.octaves) * 127.0 + 128.0)
+
+    def getWorldData(self):
+        tmp = []
+        width = 1280
+        height = 1280
+        for x in range(height):
+            for y in range(width):
+                if x < height * .5 and y < width* 0.5:
+                #if y % 2 == 0:
+                    tmp.append(chr(24))
+                    tmp.append(chr(128))
+                    tmp.append(chr(24))
+                    tmp.append(chr(255))
+                elif x > height * .5 and y < width* 0.5:
+                    tmp.append(chr(24))
+                    tmp.append(chr(24))
+                    tmp.append(chr(128))
+                    tmp.append(chr(255))
+                elif x > height * .5 and y > width* 0.5:
+                    tmp.append(chr(128))
+                    tmp.append(chr(24))
+                    tmp.append(chr(24))
+                    tmp.append(chr(255))
+                else:
+                    tmp.append(chr(0))
+                    tmp.append(chr(0))
+                    tmp.append(chr(0))
+                    tmp.append(chr(255))
+        return ''.join(ss for ss in tmp)
 
 
-"""
+    def createWorldTexture(self):
+        width = 1280
+        height = 1280
+        return
+    
+        img = Image.frombuffer("RGBA", (width, height), self.getWorldData()) 
+        img.save('testfile.jpeg')
+        self.texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.texture)
+        glPixelStorei(GL_PACK_ALIGNMENT, 1)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, self.getWorldData())
+
+    def draw(self, state):
+        if self.texture:
+            glBindTexture( GL_TEXTURE_2D, self.texture )
+            glBegin(GL_QUADS)
+            #glColor3f(1, 0, 0)
+            glTexCoord2f(0,0)
+            glVertex2f(0,0)
+
+            #glColor3f(0, 1, 0)
+            glTexCoord2f(1, 0)
+            glVertex2f( self.state.width, 0)
+
+            #glColor3f(0, 0, 1)
+            glTexCoord2f(1, 1)
+            glVertex2f( self.state.width, self.state.height)
+
+            #glColor3f(0, 1, 1)
+            glTexCoord2f(0, 1)
+            glVertex2f(0, self.state.height)
+            glEnd()
+            glBindTexture( GL_TEXTURE_2D, 0)
+
+        return
+        offset = (400, 400, 0)
+        for x in xrange(1, self.size[0] -1):
+            for y in xrange(1, self.size[1] -1):
+                self.state.render.drawText((x*16, y*16, 0), str(self.volume[x][y]))
+
+

@@ -21,7 +21,6 @@ class Particle(object):
     def __getattr__(self, key):
         return self.values.get(key)
 
-
     def spawn(self):
         list = getattr(self.state.physics, self.physicsName)
         list.append(self)
